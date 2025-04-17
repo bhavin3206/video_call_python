@@ -47,15 +47,6 @@ let isPeerAudioEnabled = true;
 
 // Initialize app
 function initApp() {
-    // navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-    //     .then((stream) => {
-    //         // Close the stream immediately – just to trigger permission popup
-    //         stream.getTracks().forEach(track => track.stop());
-    //     })
-    //     .catch((err) => {
-    //         console.warn('Permissions not granted yet:', err);
-    //     });
-
     initEventListeners();
 }
 
@@ -112,7 +103,6 @@ function initEventListeners() {
     window.addEventListener('orientationchange', () => {
         setTimeout(adjustVideoContainerSize, 100);
     });
-
 }
 
 function adjustVideoContainerSize() {
@@ -256,21 +246,8 @@ function initializeSocketConnection() {
     });
 
     socket.on('signal', async ({ from, signal }) => {
-        try {
-            // Handle WebRTC signaling
-            if (signal.type === 'offer') {
-                await peer.signal(signal);
-            } else if (signal.type === 'answer') {
-                await currentCall.signal(signal);
-            } else {
-                // ICE candidate
-                if (currentCall) {
-                    await currentCall.signal(signal);
-                }
-            }
-        } catch (err) {
-            console.error('Error handling signal:', err);
-        }
+        console.log('Received signal from', from, signal);
+        // We don't use this for the fixed implementation
     });
 
     socket.on('call_error', ({ message }) => {
@@ -286,12 +263,51 @@ function initializeSocketConnection() {
 
 // Initialize PeerJS connection
 function initializePeerConnection() {
-    peer = new Peer(currentUsername, {
-        debug: 2
-    });
+    const peerOptions = {
+        debug: 2,
+        config: {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
+            ]
+        }
+    };
+    
+    peer = new Peer(currentUsername, peerOptions);
 
     peer.on('open', (id) => {
         console.log('PeerJS connected with ID:', id);
+    });
+
+    // THIS IS THE KEY ADDITION: Handle incoming calls
+    peer.on('call', (incomingCall) => {
+        console.log('Received incoming peer call');
+        
+        if (!isInCall && localStream) {
+            // If we have our local stream ready and not in a call
+            currentCall = incomingCall;
+            
+            // Answer the call with our local stream
+            currentCall.answer(localStream);
+            
+            // Handle the incoming stream from remote peer
+            currentCall.on('stream', (stream) => {
+                console.log('Received remote stream from answer');
+                remoteStream = stream;
+                remoteVideo.srcObject = stream;
+                updateRemoteVideoStatus();
+                updateRemoteAudioStatus();
+            });
+            
+            currentCall.on('error', (err) => {
+                console.error('Peer connection error on answer:', err);
+                showNotification(`Call error: ${err.message}`, 'error');
+            });
+        } else {
+            console.warn('Received call but already in call or no local stream');
+            incomingCall.close();
+        }
     });
 
     peer.on('error', (err) => {
@@ -378,6 +394,7 @@ async function initiateCall(username, type) {
         
         // Display local video
         localVideo.srcObject = localStream;
+        localVideo.muted = true; // Important: Mute local audio to prevent feedback
         
         // Send call request to the server
         socket.emit('request_call', {
@@ -405,6 +422,7 @@ async function acceptCall(accept) {
             
             localStream = await navigator.mediaDevices.getUserMedia(constraints);
             localVideo.srcObject = localStream;
+            localVideo.muted = true; // Important: Mute local audio to prevent feedback
             
             // Send acceptance to the server
             socket.emit('call_response', {
@@ -415,7 +433,11 @@ async function acceptCall(accept) {
             
             // Set up the call
             remoteUsernameSpan.textContent = callerUserSpan.textContent;
-            startCall(callerUserSpan.textContent);
+            
+            // Actually show the call interface
+            showCallState(callScreen);
+            updateCallScreenForType();
+            isInCall = true;
             
         } catch (err) {
             console.error('Error accessing media devices:', err);
@@ -450,34 +472,51 @@ async function startCall(peerUsername) {
     // Update UI for call type
     updateCallScreenForType();
     showCallState(callScreen);
-
     
     try {
-        console.log('currentCall init:', peerUsername);
-
-        // Create a peer connection for the call
-        currentCall = peer.call(peerUsername, localStream);
-        console.log('currentCall:', currentCall);
+        console.log('Making call to:', peerUsername);
         
-        // Handle the incoming stream
-        currentCall.on('stream', (stream) => {
-            console.log('Remote stream received:', stream.streams[0]);
-            remoteStream = stream.streams[0];
-            remoteVideo.srcObject = stream;
-            updateRemoteVideoStatus();
-            updateRemoteAudioStatus();
-        });
-        
-        currentCall.on('close', () => {
-            console.log('Peer connection closed');
+        // Create a call to the peer
+        if (peer && localStream) {
+            currentCall = peer.call(peerUsername, localStream);
+            
+            if (!currentCall) {
+                console.error('Failed to create call object');
+                showNotification('Failed to establish call connection', 'error');
+                resetCallState();
+                return;
+            }
+            
+            console.log('Call created:', currentCall);
+            
+            // Handle the incoming stream from the remote peer
+            currentCall.on('stream', (stream) => {
+                console.log('Received remote stream from call:', stream);
+                
+                // Set remote stream to video element
+                remoteStream = stream;
+                remoteVideo.srcObject = stream;
+                
+                // Update remote media status indicators
+                updateRemoteVideoStatus();
+                updateRemoteAudioStatus();
+            });
+            
+            currentCall.on('close', () => {
+                console.log('Peer connection closed');
+                resetCallState();
+            });
+            
+            currentCall.on('error', (err) => {
+                console.error('Peer connection error:', err);
+                showNotification(`Call error: ${err.message}`, 'error');
+                resetCallState();
+            });
+        } else {
+            console.error('Peer or localStream not available');
+            showNotification('Connection not ready. Please try again.', 'error');
             resetCallState();
-        });
-        
-        currentCall.on('error', (err) => {
-            console.error('Peer connection error:', err);
-            showNotification(`Call error: ${err.message}`, 'error');
-            resetCallState();
-        });
+        }
     } catch (err) {
         console.error('Error starting call:', err);
         showNotification(`Error starting call: ${err.message}`, 'error');
@@ -597,7 +636,13 @@ async function switchCallType() {
         
         // Update the call with new stream
         if (currentCall) {
-            currentCall.replaceStream(localStream);
+            // For PeerJS, you need to replace the stream differently
+            if (localStream) {
+                currentCall.peerConnection.getSenders().forEach(sender => {
+                    const track = localStream.getTracks().find(t => t.kind === sender.track.kind);
+                    if (track) sender.replaceTrack(track);
+                });
+            }
         }
         
         // Reset media state
@@ -650,6 +695,16 @@ function updateRemoteAudioStatus() {
 function resetCallState() {
     isInCall = false;
     
+    // Close the PeerJS call if exists
+    if (currentCall) {
+        try {
+            currentCall.close();
+        } catch (e) {
+            console.log('Error closing call:', e);
+        }
+        currentCall = null;
+    }
+    
     // Stop media streams
     if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
@@ -676,8 +731,11 @@ function resetCallState() {
     // Reset UI
     showCallState(waitingScreen);
     
-    // Reset call object
-    currentCall = null;
+    // Reset buttons state
+    toggleVideoButton.classList.remove('video-off');
+    toggleVideoButton.classList.add('video-on');
+    toggleAudioButton.classList.remove('audio-off');
+    toggleAudioButton.classList.add('audio-on');
 }
 
 // Show a specific call state screen
