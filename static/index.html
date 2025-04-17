@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultra-Low Latency Video Calling</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div id="login-screen" class="screen active">
+            <h1>Ultra-Low Latency Video Calling</h1>
+            <div class="login-form">
+                <input type="text" id="username-input" placeholder="Enter your username" required>
+                <button id="login-button">Join</button>
+            </div>
+        </div>
+
+        <div id="main-screen" class="screen">
+            <!-- Mobile menu toggle button -->
+            <div class="menu-toggle" id="menu-toggle">☰</div>
+            
+            <div class="sidebar" id="sidebar">
+                <div class="user-info">
+                    <h2>Welcome, <span id="current-user">User</span></h2>
+                    <div class="status online">Online</div>
+                </div>
+                <div class="online-users">
+                    <h3>Online Users</h3>
+                    <ul id="online-users-list"></ul>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div id="waiting-screen" class="call-state">
+                    <h2>Ready to make calls</h2>
+                    <p>Select a user from the online list to start a call</p>
+                </div>
+
+                <div id="calling-screen" class="call-state hidden">
+                    <h2>Calling <span id="calling-user"></span>...</h2>
+                    <div class="calling-animation">
+                        <div class="circle"></div>
+                        <div class="circle"></div>
+                        <div class="circle"></div>
+                    </div>
+                    <button id="cancel-call-button" class="control-button cancel">Cancel</button>
+                </div>
+
+                <div id="incoming-call-screen" class="call-state hidden">
+                    <h2>Incoming call from <span id="caller-user"></span></h2>
+                    <div class="call-buttons">
+                        <button id="accept-call-button" class="control-button accept">Accept</button>
+                        <button id="reject-call-button" class="control-button reject">Reject</button>
+                    </div>
+                </div>
+
+                <div id="call-screen" class="call-state hidden">
+                    <div class="video-container">
+                        <div class="remote-video-wrapper">
+                            <video id="remote-video" autoplay playsinline></video>
+                            <div id="remote-user-info" class="video-user-info">
+                                <span id="remote-username">Remote User</span>
+                                <div id="remote-status" class="video-status"></div>
+                            </div>
+                        </div>
+                        <div class="local-video-wrapper">
+                            <video id="local-video" autoplay muted playsinline></video>
+                            <div class="video-user-info">
+                                <span>You</span>
+                                <div id="local-status" class="video-status"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="call-controls">
+                        <button id="toggle-video-button" class="control-button video-on">
+                            <span class="video-on-icon">Camera On</span>
+                            <span class="video-off-icon">Camera Off</span>
+                        </button>
+                        <button id="toggle-audio-button" class="control-button audio-on">
+                            <span class="audio-on-icon">Mic On</span>
+                            <span class="audio-off-icon">Mic Off</span>
+                        </button>
+                        <button id="switch-call-type-button" class="control-button">
+                            <span class="to-audio-icon">Switch to Voice</span>
+                            <span class="to-video-icon">Switch to Video</span>
+                        </button>
+                        <button id="end-call-button" class="control-button end-call">End Call</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification-container"></div>
+
+    <script src="/static/js/call.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
