@@ -445,6 +445,7 @@ async function acceptCall(accept) {
 // Start the call after acceptance
 async function startCall(peerUsername) {
     isInCall = true;
+    console.log('startCall init:', peerUsername);
     
     // Update UI for call type
     updateCallScreenForType();
@@ -452,8 +453,11 @@ async function startCall(peerUsername) {
 
     
     try {
+        console.log('currentCall init:', peerUsername);
+
         // Create a peer connection for the call
         currentCall = peer.call(peerUsername, localStream);
+        console.log('currentCall:', currentCall);
         
         // Handle the incoming stream
         currentCall.on('stream', (stream) => {
