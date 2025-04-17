@@ -457,7 +457,8 @@ async function startCall(peerUsername) {
         
         // Handle the incoming stream
         currentCall.on('stream', (stream) => {
-            remoteStream = stream;
+            console.log('Remote stream received:', stream.streams[0]);
+            remoteStream = stream.streams[0];
             remoteVideo.srcObject = stream;
             updateRemoteVideoStatus();
             updateRemoteAudioStatus();
