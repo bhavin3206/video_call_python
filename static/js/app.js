@@ -284,7 +284,7 @@ function initializePeerConnection() {
     peer.on('call', (incomingCall) => {
         console.log('Received incoming peer call');
         
-        if (!isInCall && localStream) {
+        if (isInCall && localStream) {
             // If we have our local stream ready and not in a call
             currentCall = incomingCall;
             
