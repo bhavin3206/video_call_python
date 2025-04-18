@@ -691,9 +691,10 @@ function updateRemoteAudioStatus() {
     }
 }
 
-// Reset call state
+// Replace the resetCallState function with this improved version
 function resetCallState() {
-    isInCall = false;
+    isInCall = false; // Make sure this is set to false
+    console.log('reset call state init', isInCall);
     
     // Close the PeerJS call if exists
     if (currentCall) {
@@ -704,16 +705,19 @@ function resetCallState() {
         }
         currentCall = null;
     }
+    console.log('currentCall', currentCall);
     
     // Stop media streams
     if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
         localStream = null;
     }
+    console.log('localStream', localStream);
     
     if (remoteStream) {
         remoteStream = null;
     }
+    console.log('remoteStream', remoteStream);
     
     // Clear video elements
     localVideo.srcObject = null;
@@ -736,6 +740,15 @@ function resetCallState() {
     toggleVideoButton.classList.add('video-on');
     toggleAudioButton.classList.remove('audio-off');
     toggleAudioButton.classList.add('audio-on');
+    
+    // Reset user names in UI elements
+    callingUserSpan.textContent = '';
+    callerUserSpan.textContent = '';
+    console.log('Before:', remoteUsernameSpan.textContent);
+    remoteUsernameSpan.textContent = '';
+    console.log('After:', remoteUsernameSpan.textContent);
+        
+    console.log('Call state reset complete - isInCall:', isInCall);
 }
 
 // Show a specific call state screen
