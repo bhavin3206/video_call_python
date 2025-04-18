@@ -143,6 +143,7 @@ function handleLogin() {
 
 // Initialize Socket.IO connection
 function initializeSocketConnection() {
+    console.log('is in call', isInCall);
     // Connect to Socket.IO server
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const socketUrl = `${protocol}://${window.location.host}`;
@@ -203,6 +204,7 @@ function initializeSocketConnection() {
 
     socket.on('incoming_call', ({ caller, type }) => {
         if (isInCall) {
+            console.log('alredy in call');
             // Already in a call, automatically reject
             socket.emit('call_response', {
                 caller: caller,
