@@ -414,6 +414,9 @@ async function initiateCall(username, type) {
 async function acceptCall(accept) {
     if (accept) {
         try {
+            const callerUsername = callerUserSpan.textContent;
+            console.log("call accepted", callerUsername);
+            
             // Get user media based on call type
             const constraints = {
                 audio: true,
@@ -426,13 +429,33 @@ async function acceptCall(accept) {
             
             // Send acceptance to the server
             socket.emit('call_response', {
-                caller: callerUserSpan.textContent,
+                caller: callerUsername,
                 accepted: true,
                 responder: currentUsername
             });
             
             // Set up the call
-            remoteUsernameSpan.textContent = callerUserSpan.textContent;
+            remoteUsernameSpan.textContent = callerUsername;
+            
+            // THIS IS THE NEW CODE: Set up the peer connection
+            if (peer && localStream) {
+                console.log("Connecting to peer:", callerUsername);
+                currentCall = peer.call(callerUsername, localStream);
+                
+                currentCall.on('stream', (stream) => {
+                    console.log('Received remote stream in acceptCall');
+                    remoteStream = stream;
+                    remoteVideo.srcObject = stream;
+                    updateRemoteVideoStatus();
+                    updateRemoteAudioStatus();
+                });
+                
+                currentCall.on('error', (err) => {
+                    console.error('Peer connection error:', err);
+                    showNotification(`Call error: ${err.message}`, 'error');
+                    resetCallState();
+                });
+            }
             
             // Actually show the call interface
             showCallState(callScreen);
