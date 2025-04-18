@@ -284,7 +284,7 @@ function initializePeerConnection() {
     peer.on('call', (incomingCall) => {
         console.log('Received incoming peer call');
         
-        if (isInCall && localStream) {
+        if (!isInCall && localStream) {
             // If we have our local stream ready and not in a call
             currentCall = incomingCall;
             
@@ -414,9 +414,6 @@ async function initiateCall(username, type) {
 async function acceptCall(accept) {
     if (accept) {
         try {
-            const callerUsername = callerUserSpan.textContent;
-            console.log("call accepted", callerUsername);
-            
             // Get user media based on call type
             const constraints = {
                 audio: true,
@@ -429,33 +426,13 @@ async function acceptCall(accept) {
             
             // Send acceptance to the server
             socket.emit('call_response', {
-                caller: callerUsername,
+                caller: callerUserSpan.textContent,
                 accepted: true,
                 responder: currentUsername
             });
             
             // Set up the call
-            remoteUsernameSpan.textContent = callerUsername;
-            
-            // THIS IS THE NEW CODE: Set up the peer connection
-            if (peer && localStream) {
-                console.log("Connecting to peer:", callerUsername);
-                currentCall = peer.call(callerUsername, localStream);
-                
-                currentCall.on('stream', (stream) => {
-                    console.log('Received remote stream in acceptCall');
-                    remoteStream = stream;
-                    remoteVideo.srcObject = stream;
-                    updateRemoteVideoStatus();
-                    updateRemoteAudioStatus();
-                });
-                
-                currentCall.on('error', (err) => {
-                    console.error('Peer connection error:', err);
-                    showNotification(`Call error: ${err.message}`, 'error');
-                    resetCallState();
-                });
-            }
+            remoteUsernameSpan.textContent = callerUserSpan.textContent;
             
             // Actually show the call interface
             showCallState(callScreen);
@@ -489,6 +466,7 @@ async function acceptCall(accept) {
 
 // Start the call after acceptance
 async function startCall(peerUsername) {
+    isInCall = true;
     console.log('startCall init:', peerUsername);
     
     // Update UI for call type
