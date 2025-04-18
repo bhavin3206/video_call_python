@@ -489,7 +489,6 @@ async function acceptCall(accept) {
 
 // Start the call after acceptance
 async function startCall(peerUsername) {
-    isInCall = true;
     console.log('startCall init:', peerUsername);
     
     // Update UI for call type
