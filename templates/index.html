@@ -1,65 +1,66 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Video Call</title>
-</head>
-<body>
-  <h1>Video Call Demo</h1>
-  <video id="local" autoplay muted></video>
-  <video id="remote" autoplay></video>
-  <script>
-    // const ws = new WebSocket("ws://localhost:8000/ws");
-    const ws = new WebSocket("wss://" + window.location.host + "/ws");
+  <head>
+    <title>Video Call</title>
+  </head>
+  <body>
+    <h1>Video Call Demo</h1>
+    <video id="local" autoplay muted></video>
+    <video id="remote" autoplay></video>
+    <script>
+      // const ws = new WebSocket("ws://localhost:8000/ws");
+      const ws = new WebSocket("wss://" + window.location.host + "/ws");
+      // const ws = new WebSocket("wss://sweet-alpaca-curiously.ngrok-free.app/ws");
 
-    const localVideo = document.getElementById("local");
-    const remoteVideo = document.getElementById("remote");
+      const localVideo = document.getElementById("local");
+      const remoteVideo = document.getElementById("remote");
 
-    const peer = new RTCPeerConnection();
+      const peer = new RTCPeerConnection();
 
-    // Get media
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
-      localVideo.srcObject = stream;
-      stream.getTracks().forEach(track => peer.addTrack(track, stream));
-    });
+      // Get media
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
+        localVideo.srcObject = stream;
+        stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+      });
 
-    // Signaling
-    ws.onmessage = async ({ data }) => {
-      const msg = JSON.parse(data);
+      // Signaling
+      ws.onmessage = async ({ data }) => {
+        const msg = JSON.parse(data);
 
-      if (msg.offer) {
-        await peer.setRemoteDescription(new RTCSessionDescription(msg.offer));
-        const answer = await peer.createAnswer();
-        await peer.setLocalDescription(answer);
-        ws.send(JSON.stringify({ answer }));
-      }
+        if (msg.offer) {
+          await peer.setRemoteDescription(new RTCSessionDescription(msg.offer));
+          const answer = await peer.createAnswer();
+          await peer.setLocalDescription(answer);
+          ws.send(JSON.stringify({ answer }));
+        }
 
-      if (msg.answer) {
-        await peer.setRemoteDescription(new RTCSessionDescription(msg.answer));
-      }
+        if (msg.answer) {
+          await peer.setRemoteDescription(new RTCSessionDescription(msg.answer));
+        }
 
-      if (msg.candidate) {
-        await peer.addIceCandidate(new RTCIceCandidate(msg.candidate));
-      }
-    };
+        if (msg.candidate) {
+          await peer.addIceCandidate(new RTCIceCandidate(msg.candidate));
+        }
+      };
 
-    // Send offer
-    peer.onnegotiationneeded = async () => {
-      const offer = await peer.createOffer();
-      await peer.setLocalDescription(offer);
-      ws.send(JSON.stringify({ offer }));
-    };
+      // Send offer
+      peer.onnegotiationneeded = async () => {
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        ws.send(JSON.stringify({ offer }));
+      };
 
-    // Send ICE candidates
-    peer.onicecandidate = (event) => {
-      if (event.candidate) {
-        ws.send(JSON.stringify({ candidate: event.candidate }));
-      }
-    };
+      // Send ICE candidates
+      peer.onicecandidate = (event) => {
+        if (event.candidate) {
+          ws.send(JSON.stringify({ candidate: event.candidate }));
+        }
+      };
 
-    // Show remote video
-    peer.ontrack = (event) => {
-      remoteVideo.srcObject = event.streams[0];
-    };
-  </script>
-</body>
+      // Show remote video
+      peer.ontrack = (event) => {
+        remoteVideo.srcObject = event.streams[0];
+      };
+    </script>
+  </body>
 </html>
