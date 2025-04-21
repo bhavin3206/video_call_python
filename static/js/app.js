@@ -427,7 +427,7 @@ async function acceptCall(accept) {
             localStream = await navigator.mediaDevices.getUserMedia(constraints);
             localVideo.srcObject = localStream;
             localVideo.muted = true; // Important: Mute local audio to prevent feedback
-
+            mainScreen.classList.remove('pt-25')
             // Send acceptance to the server
             socket.emit('call_response', {
                 caller: callerUserSpan.textContent,

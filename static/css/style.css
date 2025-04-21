@@ -528,6 +528,12 @@ button:hover {
     height: auto;
     padding: 10px 5px;
   }
+  .screen.active {
+    display: block;
+  }
+  .pt-25 {
+    padding-top: 25% !important;
+  }
 }
 
 /* Fix for iOS safari */
