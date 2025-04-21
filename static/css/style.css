@@ -44,12 +44,12 @@ button:hover {
   background-color: #2980b9;
 }
 
-.screen {
+.join-screen {
   display: none;
   height: 100%;
 }
 
-.screen.active {
+.join-screen.active {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -510,6 +510,8 @@ button:hover {
   #incoming-call-screen h2 {
     font-size: 20px;
   }
+
+  
 }
 
 /* For extra small screens */
@@ -528,11 +530,11 @@ button:hover {
     height: auto;
     padding: 10px 5px;
   }
-  .screen.active {
-    display: block;
-  }
   .pt-25 {
     padding-top: 25% !important;
+  }
+  .join-screen.active {
+    display: block;
   }
 }
 
