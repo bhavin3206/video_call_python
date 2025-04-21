@@ -15,9 +15,7 @@ body {
 
 .app-container {
   width: 100%;
-  /* max-width: 1600px; */
   margin: 0 auto;
-  height: 100vh;
   height: 100svh; /* Use svh for mobile browsers */
   display: flex;
   flex-direction: column;
@@ -197,6 +195,7 @@ button:hover {
   left: 0;
   background-color: #f5f7fa;
   padding: 20px;
+  gap: 15px;
 }
 
 .call-state.hidden {
@@ -262,6 +261,7 @@ button:hover {
   /* object-fit: cover; */
   background-color: #2c3e50;
   border-radius: 10px;
+  transform: scaleX(-1);
 }
 
 .local-video-wrapper {
@@ -339,30 +339,24 @@ button:hover {
   display: none;
 }
 
-.control-button.video-on {
+.control-button.video-on,
+.control-button.video-off,
+.control-button.audio-on,
+.control-button.audio-off {
   background-color: #3498db;
 }
 .control-button.video-on .video-on-icon,
-.control-button.video-off .video-off-icon {
+.control-button.video-off .video-off-icon,
+.control-button.audio-on .audio-on-icon,
+.control-button.audio-off .audio-off-icon {
   display: block;
-}
-
-/* .control-button.video-off {
-  background-color: #e74c3c;
-} */
-
-.control-button.audio-on {
-  background-color: #2ecc71;
-}
-
-.control-button.audio-off {
-  background-color: #e74c3c;
 }
 
 .control-button.end-call {
   background-color: #e74c3c;
 }
-.control-button.end-call svg {
+.control-button.end-call svg,
+.control-button.reject svg {
   transform: rotate(138deg);
 }
 
@@ -496,7 +490,7 @@ button:hover {
   .local-video-wrapper {
     width: 120px;
     height: 90px;
-    bottom: 100px;
+    /* bottom: 100px; */
     right: 10px;
   }
 
@@ -516,23 +510,13 @@ button:hover {
   #incoming-call-screen h2 {
     font-size: 20px;
   }
-
-  .call-buttons {
-    flex-direction: column;
-    gap: 15px;
-    width: 100%;
-  }
-
-  .call-buttons button {
-    width: 100%;
-  }
 }
 
 /* For extra small screens */
 @media (max-width: 480px) {
   .local-video-wrapper {
     width: 90px;
-    height: 70px;
+    height: 140px;
   }
 
   .control-button {
