@@ -35,7 +35,7 @@ const endCallButton = document.getElementById('end-call-button');
 // Media controls
 const toggleVideoButton = document.getElementById('toggle-video-button');
 const toggleAudioButton = document.getElementById('toggle-audio-button');
-const switchCallTypeButton = document.getElementById('switch-call-type-button');
+// const switchCallTypeButton = document.getElementById('switch-call-type-button');
 const localVideo = document.getElementById('local-video');
 const remoteVideo = document.getElementById('remote-video');
 
@@ -67,26 +67,26 @@ function initEventListeners() {
     // Media controls
     toggleVideoButton.addEventListener('click', toggleVideo);
     toggleAudioButton.addEventListener('click', toggleAudio);
-    switchCallTypeButton.addEventListener('click', switchCallType);
+    // switchCallTypeButton.addEventListener('click', switchCallType);
 
     const menuToggle = document.getElementById('menu-toggle');
     const sidebar = document.getElementById('sidebar');
-    
+
     if (menuToggle && sidebar) {
         menuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('active');
         });
-        
+
         // Close sidebar when clicking outside on mobile
         document.addEventListener('click', (event) => {
             const isClickInsideSidebar = sidebar.contains(event.target);
             const isClickOnToggle = menuToggle.contains(event.target);
-            
+
             if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('active')) {
                 sidebar.classList.remove('active');
             }
         });
-        
+
         // Close sidebar when user makes a call
         onlineUsersList.addEventListener('click', (event) => {
             if (window.innerWidth <= 768) {
@@ -94,12 +94,12 @@ function initEventListeners() {
             }
         });
     }
-    
+
     // Ensure proper sizing on orientation change
     window.addEventListener('resize', () => {
         adjustVideoContainerSize();
     });
-    
+
     window.addEventListener('orientationchange', () => {
         setTimeout(adjustVideoContainerSize, 100);
     });
@@ -111,11 +111,11 @@ function adjustVideoContainerSize() {
         // Ensure video container fits within the viewport
         const mainContent = document.querySelector('.main-content');
         const callControls = document.querySelector('.call-controls');
-        
+
         if (mainContent && callControls) {
             const mainContentHeight = mainContent.clientHeight;
             const callControlsHeight = callControls.clientHeight;
-            videoContainer.style.height = `${mainContentHeight - callControlsHeight }px`;
+            videoContainer.style.height = `${mainContentHeight - callControlsHeight}px`;
             // videoContainer.style.height = `auto`;
         }
     }
@@ -196,7 +196,7 @@ function initializeSocketConnection() {
         onlineUsers = onlineUsers.filter(user => user !== username);
         updateOnlineUsersList();
         showNotification(`${username} disconnected`, 'info');
-        
+
         // If in call with disconnected user, end the call
         if (isInCall && remoteUsernameSpan.textContent === username) {
             showNotification(`Call ended: ${username} disconnected`, 'error');
@@ -277,7 +277,7 @@ function initializePeerConnection() {
             ]
         }
     };
-    
+
     peer = new Peer(currentUsername, peerOptions);
 
     peer.on('open', (id) => {
@@ -287,27 +287,27 @@ function initializePeerConnection() {
     // THIS IS THE KEY ADDITION: Handle incoming calls
     peer.on('call', (incomingCall) => {
         console.log('Received incoming peer call');
-        
+
         // if (!isInCall && localStream) {
-            // If we have our local stream ready and not in a call
-            currentCall = incomingCall;
-            
-            // Answer the call with our local stream
-            currentCall.answer(localStream);
-            
-            // Handle the incoming stream from remote peer
-            currentCall.on('stream', (stream) => {
-                console.log('Received remote stream from answer');
-                remoteStream = stream;
-                remoteVideo.srcObject = stream;
-                updateRemoteVideoStatus();
-                updateRemoteAudioStatus();
-            });
-            
-            currentCall.on('error', (err) => {
-                console.error('Peer connection error on answer:', err);
-                showNotification(`Call error: ${err.message}`, 'error');
-            });
+        // If we have our local stream ready and not in a call
+        currentCall = incomingCall;
+
+        // Answer the call with our local stream
+        currentCall.answer(localStream);
+
+        // Handle the incoming stream from remote peer
+        currentCall.on('stream', (stream) => {
+            console.log('Received remote stream from answer');
+            remoteStream = stream;
+            remoteVideo.srcObject = stream;
+            updateRemoteVideoStatus();
+            updateRemoteAudioStatus();
+        });
+
+        currentCall.on('error', (err) => {
+            console.error('Peer connection error on answer:', err);
+            showNotification(`Call error: ${err.message}`, 'error');
+        });
         // } else {
         //     console.warn('Received call but already in call or no local stream');
         //     incomingCall.close();
@@ -333,10 +333,10 @@ function initializePeerConnection() {
 // Update online users list
 function updateOnlineUsersList() {
     onlineUsersList.innerHTML = '';
-    
+
     // Filter out current user
     const filteredUsers = onlineUsers.filter(user => user !== currentUsername);
-    
+
     if (filteredUsers.length === 0) {
         const noUsersItem = document.createElement('li');
         noUsersItem.textContent = 'No other users online';
@@ -344,33 +344,33 @@ function updateOnlineUsersList() {
         onlineUsersList.appendChild(noUsersItem);
         return;
     }
-    
+
     // Create user list items
     filteredUsers.forEach(username => {
         const userItem = document.createElement('li');
         userItem.classList.add('user-item');
-        
+
         const usernameSpan = document.createElement('span');
         usernameSpan.textContent = username;
         userItem.appendChild(usernameSpan);
-        
+
         const callButtonsDiv = document.createElement('div');
         callButtonsDiv.classList.add('call-buttons');
-        
+
         // Video call button
         const videoCallButton = document.createElement('button');
         videoCallButton.classList.add('call-button', 'video');
         videoCallButton.textContent = 'Video';
         videoCallButton.addEventListener('click', () => initiateCall(username, 'video'));
         callButtonsDiv.appendChild(videoCallButton);
-        
+
         // Audio call button
         const audioCallButton = document.createElement('button');
         audioCallButton.classList.add('call-button', 'audio');
         audioCallButton.textContent = 'Voice';
         audioCallButton.addEventListener('click', () => initiateCall(username, 'audio'));
         callButtonsDiv.appendChild(audioCallButton);
-        
+
         userItem.appendChild(callButtonsDiv);
         onlineUsersList.appendChild(userItem);
     });
@@ -382,31 +382,31 @@ async function initiateCall(username, type) {
         showNotification('You are already in a call', 'error');
         return;
     }
-    
+
     callType = type;
     callingUserSpan.textContent = username;
     showCallState(callingScreen);
-    
+
     try {
         // Request user media according to call type
         const constraints = {
             audio: true,
             video: type === 'video'
         };
-        
+
         localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        
+
         // Display local video
         localVideo.srcObject = localStream;
         localVideo.muted = true; // Important: Mute local audio to prevent feedback
-        
+
         // Send call request to the server
         socket.emit('request_call', {
             caller: currentUsername,
             callee: username,
             type: type
         });
-        
+
     } catch (err) {
         console.error('Error accessing media devices:', err);
         showNotification(`Could not access ${type === 'video' ? 'camera' : 'microphone'}. ${err.message}`, 'error');
@@ -423,37 +423,37 @@ async function acceptCall(accept) {
                 audio: true,
                 video: callType === 'video'
             };
-            
+
             localStream = await navigator.mediaDevices.getUserMedia(constraints);
             localVideo.srcObject = localStream;
             localVideo.muted = true; // Important: Mute local audio to prevent feedback
-            
+            mainScreen.classList.remove('pt-25')
             // Send acceptance to the server
             socket.emit('call_response', {
                 caller: callerUserSpan.textContent,
                 accepted: true,
                 responder: currentUsername
             });
-            
+
             // Set up the call
             remoteUsernameSpan.textContent = callerUserSpan.textContent;
-            
+
             // Actually show the call interface
             showCallState(callScreen);
             updateCallScreenForType();
             isInCall = true;
-            
+
         } catch (err) {
             console.error('Error accessing media devices:', err);
             showNotification(`Could not access ${callType === 'video' ? 'camera' : 'microphone'}. ${err.message}`, 'error');
-            
+
             // Reject the call if we can't access media
             socket.emit('call_response', {
                 caller: callerUserSpan.textContent,
                 accepted: false,
                 responder: currentUsername
             });
-            
+
             resetCallState();
         }
     } else {
@@ -463,7 +463,7 @@ async function acceptCall(accept) {
             accepted: false,
             responder: currentUsername
         });
-        
+
         resetCallState();
     }
 }
@@ -472,45 +472,45 @@ async function acceptCall(accept) {
 async function startCall(peerUsername) {
     isInCall = true;
     console.log('startCall init:', peerUsername);
-    
+
     // Update UI for call type
     updateCallScreenForType();
     showCallState(callScreen);
-    
+
     try {
         console.log('Making call to:', peerUsername);
-        
+
         // Create a call to the peer
         if (peer && localStream) {
             currentCall = peer.call(peerUsername, localStream);
-            
+
             if (!currentCall) {
                 console.error('Failed to create call object');
                 showNotification('Failed to establish call connection', 'error');
                 resetCallState();
                 return;
             }
-            
+
             console.log('Call created:', currentCall);
-            
+
             // Handle the incoming stream from the remote peer
             currentCall.on('stream', (stream) => {
                 console.log('Received remote stream from call:', stream);
-                
+
                 // Set remote stream to video element
                 remoteStream = stream;
                 remoteVideo.srcObject = stream;
-                
+
                 // Update remote media status indicators
                 updateRemoteVideoStatus();
                 updateRemoteAudioStatus();
             });
-            
+
             currentCall.on('close', () => {
                 console.log('Peer connection closed');
                 resetCallState();
             });
-            
+
             currentCall.on('error', (err) => {
                 console.error('Peer connection error:', err);
                 showNotification(`Call error: ${err.message}`, 'error');
@@ -535,35 +535,35 @@ function cancelCall() {
         accepted: false,
         responder: callingUserSpan.textContent
     });
-    
+
     resetCallState();
 }
 
 // End an ongoing call
 function endCall() {
     const remotePeer = remoteUsernameSpan.textContent;
-    
+
     socket.emit('call_ended', {
         user: currentUsername,
         peer: remotePeer
     });
-    
+
     resetCallState();
 }
 
 // Toggle video on/off
 function toggleVideo() {
     if (!localStream) return;
-    
+
     isVideoEnabled = !isVideoEnabled;
     localStream.getVideoTracks().forEach(track => {
         track.enabled = isVideoEnabled;
     });
-    
+
     // Update UI
     toggleVideoButton.classList.toggle('video-on', isVideoEnabled);
     toggleVideoButton.classList.toggle('video-off', !isVideoEnabled);
-    
+
     // Notify peer
     socket.emit('toggle_media', {
         user: currentUsername,
@@ -576,16 +576,16 @@ function toggleVideo() {
 // Toggle audio on/off
 function toggleAudio() {
     if (!localStream) return;
-    
+
     isAudioEnabled = !isAudioEnabled;
     localStream.getAudioTracks().forEach(track => {
         track.enabled = isAudioEnabled;
     });
-    
+
     // Update UI
     toggleAudioButton.classList.toggle('audio-on', isAudioEnabled);
     toggleAudioButton.classList.toggle('audio-off', !isAudioEnabled);
-    
+
     // Notify peer
     socket.emit('toggle_media', {
         user: currentUsername,
@@ -598,46 +598,46 @@ function toggleAudio() {
 // Switch between video and voice call
 async function switchCallType() {
     if (!isInCall) return;
-    
+
     try {
         if (callType === 'video') {
             // Switch to voice call
             callType = 'audio';
-            
+
             // Stop video tracks
             localStream.getVideoTracks().forEach(track => {
                 track.stop();
             });
-            
+
             // Get new stream with audio only
             const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
+
             // Replace local stream
             localStream = audioStream;
             localVideo.srcObject = audioStream;
-            
+
             // Update UI
             document.querySelector('.video-container').classList.add('voice-call-mode');
-            switchCallTypeButton.querySelector('.to-audio-icon').style.display = 'none';
-            switchCallTypeButton.querySelector('.to-video-icon').style.display = 'inline';
-            
+            // switchCallTypeButton.querySelector('.to-audio-icon').style.display = 'none';
+            // switchCallTypeButton.querySelector('.to-video-icon').style.display = 'inline';
+
         } else {
             // Switch to video call
             callType = 'video';
-            
+
             // Get new stream with video and audio
             const videoStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-            
+
             // Replace local stream
             localStream = videoStream;
             localVideo.srcObject = videoStream;
-            
+
             // Update UI
             document.querySelector('.video-container').classList.remove('voice-call-mode');
-            switchCallTypeButton.querySelector('.to-audio-icon').style.display = 'inline';
-            switchCallTypeButton.querySelector('.to-video-icon').style.display = 'none';
+            // switchCallTypeButton.querySelector('.to-audio-icon').style.display = 'inline';
+            // switchCallTypeButton.querySelector('.to-video-icon').style.display = 'none';
         }
-        
+
         // Update the call with new stream
         if (currentCall) {
             // For PeerJS, you need to replace the stream differently
@@ -648,14 +648,14 @@ async function switchCallType() {
                 });
             }
         }
-        
+
         // Reset media state
         isVideoEnabled = callType === 'video';
         isAudioEnabled = true;
-        
+
         // Update UI
         updateCallScreenForType();
-        
+
     } catch (err) {
         console.error('Error switching call type:', err);
         showNotification(`Error switching call type: ${err.message}`, 'error');
@@ -666,12 +666,12 @@ async function switchCallType() {
 function updateCallScreenForType() {
     if (callType === 'video') {
         document.querySelector('.video-container').classList.remove('voice-call-mode');
-        switchCallTypeButton.querySelector('.to-audio-icon').style.display = 'inline';
-        switchCallTypeButton.querySelector('.to-video-icon').style.display = 'none';
+        // switchCallTypeButton.querySelector('.to-audio-icon').style.display = 'inline';
+        // switchCallTypeButton.querySelector('.to-video-icon').style.display = 'none';
     } else {
         document.querySelector('.video-container').classList.add('voice-call-mode');
-        switchCallTypeButton.querySelector('.to-audio-icon').style.display = 'none';
-        switchCallTypeButton.querySelector('.to-video-icon').style.display = 'inline';
+        // switchCallTypeButton.querySelector('.to-audio-icon').style.display = 'none';
+        // switchCallTypeButton.querySelector('.to-video-icon').style.display = 'inline';
     }
 }
 
@@ -699,7 +699,7 @@ function updateRemoteAudioStatus() {
 function resetCallState() {
     isInCall = false; // Make sure this is set to false
     console.log('reset call state init', isInCall);
-    
+
     // Close the PeerJS call if exists
     if (currentCall) {
         try {
@@ -710,48 +710,48 @@ function resetCallState() {
         currentCall = null;
     }
     console.log('currentCall', currentCall);
-    
+
     // Stop media streams
     if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
         localStream = null;
     }
     console.log('localStream', localStream);
-    
+
     if (remoteStream) {
         remoteStream = null;
     }
     console.log('remoteStream', remoteStream);
-    
+
     // Clear video elements
     localVideo.srcObject = null;
     remoteVideo.srcObject = null;
-    
+
     // Reset call type to video by default
     callType = 'video';
-    
+
     // Reset media state
     isVideoEnabled = true;
     isAudioEnabled = true;
     isPeerVideoEnabled = true;
     isPeerAudioEnabled = true;
-    
+
     // Reset UI
     showCallState(waitingScreen);
-    
+
     // Reset buttons state
     toggleVideoButton.classList.remove('video-off');
     toggleVideoButton.classList.add('video-on');
     toggleAudioButton.classList.remove('audio-off');
     toggleAudioButton.classList.add('audio-on');
-    
+
     // Reset user names in UI elements
     callingUserSpan.textContent = '';
     callerUserSpan.textContent = '';
     console.log('Before:', remoteUsernameSpan.textContent);
     remoteUsernameSpan.textContent = '';
     console.log('After:', remoteUsernameSpan.textContent);
-        
+
     console.log('Call state reset complete - isInCall:', isInCall);
 }
 
@@ -762,7 +762,7 @@ function showCallState(screen) {
     callingScreen.classList.add('hidden');
     incomingCallScreen.classList.add('hidden');
     callScreen.classList.add('hidden');
-    
+
     // Show the requested screen
     screen.classList.remove('hidden');
 }
@@ -781,9 +781,9 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.classList.add('notification', type);
     notification.textContent = message;
-    
+
     document.getElementById('notification-container').appendChild(notification);
-    
+
     // Auto-remove after 5 seconds
     setTimeout(() => {
         notification.style.opacity = '0';
