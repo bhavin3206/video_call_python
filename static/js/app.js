@@ -115,7 +115,8 @@ function adjustVideoContainerSize() {
         if (mainContent && callControls) {
             const mainContentHeight = mainContent.clientHeight;
             const callControlsHeight = callControls.clientHeight;
-            videoContainer.style.height = `${mainContentHeight - callControlsHeight - 20}px`;
+            videoContainer.style.height = `${mainContentHeight - callControlsHeight }px`;
+            // videoContainer.style.height = `auto`;
         }
     }
 }
@@ -147,6 +148,7 @@ function initializeSocketConnection() {
     // Connect to Socket.IO server
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const socketUrl = `${protocol}://${window.location.host}`;
+    // const socketUrl = `wss://sterling-probable-beetle.ngrok-free.app/`;
 
     socket = io(socketUrl, {
         autoConnect: true,
@@ -286,7 +288,7 @@ function initializePeerConnection() {
     peer.on('call', (incomingCall) => {
         console.log('Received incoming peer call');
         
-        if (!isInCall && localStream) {
+        // if (!isInCall && localStream) {
             // If we have our local stream ready and not in a call
             currentCall = incomingCall;
             
@@ -306,10 +308,10 @@ function initializePeerConnection() {
                 console.error('Peer connection error on answer:', err);
                 showNotification(`Call error: ${err.message}`, 'error');
             });
-        } else {
-            console.warn('Received call but already in call or no local stream');
-            incomingCall.close();
-        }
+        // } else {
+        //     console.warn('Received call but already in call or no local stream');
+        //     incomingCall.close();
+        // }
     });
 
     peer.on('error', (err) => {
