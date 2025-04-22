@@ -537,10 +537,3 @@ button:hover {
     display: block;
   }
 }
-
-/* Fix for iOS safari */
-@supports (-webkit-touch-callout: none) {
-  .app-container {
-    height: -webkit-fill-available;
-  }
-}
